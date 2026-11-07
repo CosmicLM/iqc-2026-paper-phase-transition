@@ -10,15 +10,15 @@ Same model and sign convention as the challenge README:
 
 Usage
   Local simulator (free, start here):
-      python quantum_qaoa.py
-      python quantum_qaoa.py --network us1 --layers 50
+      python src/quantum_qaoa.py
+      python src/quantum_qaoa.py --network us1 --layers 50
 
   qBraid real hardware (spends credits; see --help):
-      python quantum_qaoa.py --list-devices
-      python quantum_qaoa.py --device <device id> --layers 3 --shots 500
+      python src/quantum_qaoa.py --list-devices
+      python src/quantum_qaoa.py --device <device id> --layers 3 --shots 500
 
 Networks: utah (5 nodes, default), us1 (20 nodes, one US region).
-Writes quantum_results_<network>_<backend>.csv
+Writes results/quantum_results_<network>_<backend>.csv
 """
 
 import argparse
@@ -30,7 +30,7 @@ from qiskit import QuantumCircuit
 
 import scaling_comparison as model
 
-HERE = Path(__file__).parent
+RESULTS = Path(__file__).resolve().parents[1] / "results"
 
 
 def get_network(name):
@@ -161,6 +161,7 @@ def list_devices():
 
 
 def main():
+    RESULTS.mkdir(exist_ok=True)
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--network", default="utah", help="utah (5 nodes) or us1 (20 nodes)")
@@ -245,7 +246,7 @@ def main():
           f"1/2^{len(nodes)} = {1 / 2 ** len(nodes):.4f}  "
           f"({mean_p * 2 ** len(nodes):.0f}x better than chance)")
 
-    out = HERE / f"quantum_results_{args.network}_{backend.name.replace('/', '_')}.csv"
+    out = RESULTS / f"quantum_results_{args.network}_{backend.name.replace('/', '_')}.csv"
     with out.open("w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0]))
         writer.writeheader()
