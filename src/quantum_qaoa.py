@@ -41,8 +41,11 @@ def get_network(name):
     raise SystemExit(f"unknown network {name!r} (use utah or us1)")
 
 
-def build_circuit(resistances, ties, pressure, layers, ramp):
-    """Linear-ramp QAOA: cost angle rises 0 -> ramp, mixer angle falls ramp -> 0."""
+def ramp_layers(resistances, ties, pressure, layers, ramp):
+    """The circuit in pieces: the |+> start, then one circuit per ramp step.
+
+    Linear-ramp QAOA: cost angle rises 0 -> ramp, mixer angle falls ramp -> 0.
+    """
     nodes = list(resistances)
     index = {node: i for i, node in enumerate(nodes)}
     h = {node: -(pressure - r) for node, r in resistances.items()}
@@ -51,12 +54,14 @@ def build_circuit(resistances, ties, pressure, layers, ramp):
     scale = max([abs(v) for v in h.values()] + [abs(j) for _, _, j in J] + [1e-9])
 
     width = len(nodes)
-    qc = QuantumCircuit(width, width)
-    qc.h(range(width))
+    start = QuantumCircuit(width)
+    start.h(range(width))
+    steps = []
     for step in range(1, layers + 1):
         fraction = step / layers
         gamma = ramp * fraction / scale
         beta = ramp * (1 - fraction)
+        qc = QuantumCircuit(width)
         for node, value in h.items():
             qc.rz(2 * gamma * value, index[node])
         for i, j, value in J:
@@ -66,6 +71,18 @@ def build_circuit(resistances, ties, pressure, layers, ramp):
             qc.cx(i, j)
         # Mixer is -sum X, whose lowest state is the |+> start; RX(-2b) = exp(+i b X).
         qc.rx(-2 * beta, range(width))
+        steps.append(qc)
+    return start, steps, nodes
+
+
+def build_circuit(resistances, ties, pressure, layers, ramp):
+    """Full measured circuit for one year."""
+    start, steps, nodes = ramp_layers(resistances, ties, pressure, layers, ramp)
+    width = len(nodes)
+    qc = QuantumCircuit(width, width)
+    qc.compose(start, inplace=True)
+    for step in steps:
+        qc.compose(step, inplace=True)
     qc.measure(range(width), range(width))
     return qc, nodes
 

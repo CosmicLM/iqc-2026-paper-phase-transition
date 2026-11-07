@@ -2,6 +2,8 @@
 
 This project applies the Ising-model challenge from the **IQC 2026 Paper Phase Transition** README to a small network of Utah industries. It uses the challenge's suggested baseline resistances and partner-tie values, plus Utah sources that document selected employers and public-sector relationships.
 
+**Technical write-up with all figures: [`results/THESIS.md`](results/THESIS.md).**
+
 The results below are outputs of this specified model. They are not measured adoption rates or a forecast validated against Utah company behavior.
 
 ## Repository layout
@@ -9,7 +11,8 @@ The results below are outputs of this specified model. They are not measured ado
 ```
 data/       model inputs
 src/        solvers and scripts
-results/    solver outputs (CSV) and charts
+results/    solver outputs (CSV), figures/ and THESIS.md
+docs/       whiteboard photos of the derivations
 sources/    PDF copies of the sources cited below
 ```
 
@@ -27,6 +30,7 @@ sources/    PDF copies of the sources cited below
 | [`src/twenty_industries_over_time.py`](src/twenty_industries_over_time.py) | Exact flip years for the challenge's 20 industries in one region | `results/twenty_industries_results.csv` |
 | [`src/scaling_comparison.py`](src/scaling_comparison.py) | Brute force vs minimum cut vs simulated annealing, 5 to 1,920 nodes | `results/scaling_results.csv`, `results/scaling.png` |
 | [`src/quantum_qaoa.py`](src/quantum_qaoa.py) | Quantum tipping-point map (linear-ramp QAOA) on the Aer simulator or qBraid hardware | `results/quantum_results_<network>_<backend>.csv` |
+| [`src/make_figures.py`](src/make_figures.py) | All 15 figures: tipping map, ties, phase transition, scaling, classical vs quantum, energy gap, quantum accuracy, density matrices, entanglement, two-industry energy levels | `results/figures/*.png` |
 
 **Run**
 
@@ -36,6 +40,7 @@ python src/twenty_industries_over_time.py
 python src/scaling_comparison.py
 python src/quantum_qaoa.py                    # simulator, Utah network
 python src/quantum_qaoa.py --list-devices     # qBraid devices
+python src/make_figures.py                    # all figures
 ```
 
 ## Data and modeling choices
@@ -119,7 +124,7 @@ In this model, Retail and Manufacturing cross their thresholds first because the
 - Resistance values are challenge-suggested industry baselines, not Utah-specific measurements.
 - The Utah sources document relationships and public funding, but do not measure tie strength. Both numeric tie strengths are taken from the challenge README.
 - The five-node network contains only two ties. Retail and Manufacturing are isolated because no listed challenge tie links them to another included industry.
-- The classical result is exact for this five-node model. A quantum solver or simulator must be run on the same model to make the challenge's quantum/classical comparison; no quantum advantage is claimed here.
+- The classical result is exact for this five-node model. The quantum solver (linear-ramp QAOA, `src/quantum_qaoa.py`) reproduces all five flip years on a noiseless simulator; real-hardware runs are still pending. No quantum advantage is claimed: with all ties positive, an exact minimum cut solves the model at any size. See [`results/THESIS.md`](results/THESIS.md).
 
 ## Sources
 
