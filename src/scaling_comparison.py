@@ -15,8 +15,8 @@ Each region shifts resistance by up to +/-0.15, each node adds a little noise
 (seeded, so runs repeat), and the same industry in neighbouring regions is tied
 with J = 0.05, as the challenge README suggests.
 
-Run with: python scaling_comparison.py
-Writes: scaling_results.csv, scaling.png
+Run with: python src/scaling_comparison.py
+Writes: results/scaling_results.csv, results/scaling.png
 """
 
 import csv
@@ -26,7 +26,7 @@ from time import perf_counter
 import networkx as nx
 import numpy as np
 
-HERE = Path(__file__).parent
+RESULTS = Path(__file__).resolve().parents[1] / "results"
 YEARS = range(2026, 2041)
 PRESSURE_PER_YEAR = 0.07
 TIE_SCALE = 0.15
@@ -259,6 +259,7 @@ def plot(rows, path):
 
 
 def main():
+    RESULTS.mkdir(exist_ok=True)
     import neal
     sampler = neal.SimulatedAnnealingSampler()
     networks = [("Utah (5 industries)", *utah_network())]
@@ -270,12 +271,12 @@ def main():
 
     rows = [run(label, r, t, sampler) for label, r, t in networks]
 
-    with (HERE / "scaling_results.csv").open("w", newline="") as f:
+    with (RESULTS / "scaling_results.csv").open("w", newline="") as f:
         fieldnames = list(dict.fromkeys(k for r in rows for k in r))
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
-    plot(rows, HERE / "scaling.png")
+    plot(rows, RESULTS / "scaling.png")
 
     print(f"\n{'Network':<28}{'Nodes':>6}{'Brute':>10}{'Min-cut':>10}{'Anneal':>10}"
           f"{'SA flip yrs OK':>16}{'SA exact yrs':>14}")

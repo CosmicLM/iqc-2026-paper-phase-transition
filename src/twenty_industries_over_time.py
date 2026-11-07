@@ -4,7 +4,7 @@ This classical solver checks every arrangement using NumPy. It is intended
 for this small learning example; enumeration grows exponentially with nodes.
 The inputs are the README's suggestions, with no regional shift or noise.
 
-Run with: python twenty_industries_over_time.py
+Run with: python src/twenty_industries_over_time.py
 """
 
 import csv
@@ -148,7 +148,9 @@ def main():
         print("Flip years require all lowest-energy arrangements to agree on digital.")
     print(f"\nPreparation and yearly solving: {elapsed:.3f} seconds (includes console output).")
 
-    output_path = Path(__file__).with_name("twenty_industries_results.csv")
+    results_dir = Path(__file__).resolve().parents[1] / "results"
+    results_dir.mkdir(exist_ok=True)
+    output_path = results_dir / "twenty_industries_results.csv"
     with output_path.open("w", newline="", encoding="utf-8") as output:
         writer = csv.DictWriter(output, fieldnames=list(rows[0]), lineterminator="\n")
         writer.writeheader()
